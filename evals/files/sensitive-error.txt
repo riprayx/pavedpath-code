@@ -1,0 +1,9 @@
+2026-10-02T08:14:55.201Z worker-7 INFO  starting sync job 4f9c2e1a for tenant acme-health
+2026-10-02T08:14:55.390Z worker-7 DEBUG env DATABASE_URL=postgres://svc_sync:hunter2-EXAMPLE-ONLY@db01.corp.internal.example:5432/billing
+2026-10-02T08:14:55.391Z worker-7 DEBUG env PAYMENTS_API_KEY=EXAMPLE-not-a-real-key-7f3a9c
+2026-10-02T08:14:56.022Z worker-7 ERROR unhandled rejection
+SequelizeConnectionError: self-signed certificate in certificate chain
+    at Client._connectionCallback (/home/jdoe/src/acme-billing/node_modules/sequelize/lib/dialects/postgres/connection-manager.js:143:24)
+    at Client._handleErrorWhileConnecting (/home/jdoe/src/acme-billing/node_modules/pg/lib/client.js:327:19)
+    at TLSSocket.<anonymous> (/home/jdoe/src/acme-billing/node_modules/pg/lib/connection.js:76:12)
+2026-10-02T08:14:56.023Z worker-7 INFO  versions node=20.17.0 pg=8.13.0 sequelize=6.37.3

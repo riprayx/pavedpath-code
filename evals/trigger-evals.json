@@ -1,0 +1,22 @@
+[
+  {"query": "getting `ModuleNotFoundError: No module named 'distutils'` after moving CI to python 3.12, pip install of our pinned old numpy blows up. anyone fixed this?", "should_trigger": true},
+  {"query": "next build fails since we bumped to next 15: 'useSearchParams() should be wrapped in a suspense boundary at page /search'. known thing?", "should_trigger": true},
+  {"query": "is the fix for that urllib3 proxy auth header issue in an actual release yet or only on main? we pin 2.2.x", "should_trigger": true},
+  {"query": "need a lightweight job queue for postgres in go, really don't want to run redis just for this. what are people actually using in prod?", "should_trigger": true},
+  {"query": "docker compose up on my m1 mac: no matching manifest for linux/arm64/v8 in the manifest list entries (mysql:5.7)", "should_trigger": true},
+  {"query": "terraform aws provider v5 upgrade broke our aws_s3_bucket acl blocks, how did other teams migrate this without recreating buckets", "should_trigger": true},
+  {"query": "jest suite hangs forever after node 20 upgrade, only in github actions, fine locally. --detectOpenHandles shows nothing useful", "should_trigger": true},
+  {"query": "pnpm install throws ERR_PNPM_PEER_DEP_ISSUES with react 19 and an old ui lib we can't drop. is there a known workaround?", "should_trigger": true},
+  {"query": "has someone already built a github action that posts terraform plan output as a PR comment? don't want to write my own", "should_trigger": true},
+  {"query": "kubectl apply: 'no matches for kind HorizontalPodAutoscaler in version autoscaling/v2beta2' right after our EKS upgrade", "should_trigger": true},
+  {"query": "write me a python function that retries an http call with exponential backoff and jitter, just stdlib", "should_trigger": false},
+  {"query": "rename the userId field to accountId everywhere in this repo and update the tests", "should_trigger": false},
+  {"query": "explain what a race condition is with a small go example for a junior dev", "should_trigger": false},
+  {"query": "review this diff for naming and style issues before I open the PR", "should_trigger": false},
+  {"query": "draft release notes for v2.3 from these commit messages", "should_trigger": false},
+  {"query": "what's the best laptop for programming under 1500 dollars, mostly docker and android studio", "should_trigger": false},
+  {"query": "how many stars does facebook/react have right now", "should_trigger": false},
+  {"query": "help me write a cover letter for a senior backend engineer role at a fintech", "should_trigger": false},
+  {"query": "summarize the history of the linux kernel scheduler for a blog post", "should_trigger": false},
+  {"query": "my sourdough starter stopped rising after I moved, what's the known fix people use?", "should_trigger": false}
+]

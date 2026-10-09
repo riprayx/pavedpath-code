@@ -1,14 +1,33 @@
 # Development Plan: Chat-First PavedPath Code
 
-**Status:** Proposed implementation roadmap. This document records intended changes; it does not claim that the changes are already implemented.
+**Status:** Phases A to C are implemented in instructions (2026-10-09). Phase D (recorded evaluation runs on each platform) has not started, so platform behavior remains unverified. See the progress table below.
 
 **Primary clients:** ChatGPT Chat and Claude Chat, on the web and on supported mobile clients.
 
 **Primary purpose:** Help a user research concrete software engineering questions through the GitHub and web tools actually available in the current chat session. Find proven implementations and fixes, explain why they apply, and report uncertainty accurately. The Skill should remain useful without a local terminal or repository checkout.
 
+## Progress
+
+| Item | Status | Where |
+| --- | --- | --- |
+| P0 Tool selection at runtime | Implemented, not yet evaluated | `SKILL.md` step 2, `references/tool-selection.md` |
+| P0 Evidence gates and fix status | Implemented, not yet evaluated | `SKILL.md` steps 4 and 5, `references/research-rubric.md` |
+| P0 Untrusted content and query scrubbing | Implemented, not yet evaluated | `SKILL.md` Safety section |
+| P1 Trigger description | Rewritten; trigger set added | `SKILL.md` frontmatter, `evals/trigger-evals.json` |
+| P1 Compact answers | Implemented | `SKILL.md` step 7, `references/extraction-playbook.md` |
+| P1 Regression set | Defined (8 behavior cases, 20 trigger queries); no results recorded yet | `evals/` |
+| P2 Consolidation | Done: one topic per reference file; out-of-scope rules removed | `references/` |
+| P2 Structural CI and English-only check | Done | `tools/check_skill.py`, `.github/workflows/validate.yml` |
+| P2 Safe migration example | Done: backup instead of `rm -rf` | `MIGRATION.md` |
+| P2 claude.ai packaging | Done: zip built by the validator | `tools/check_skill.py --package` |
+| P2 ChatGPT web and mobile packaging | Open: these surfaces load Skills only through plugins | see section 8 |
+| Phase D evaluation runs | Open | `evals/README.md` results log |
+
+Research behind these changes, with sources, is in `docs/REFERENCES.md`.
+
 ## 1. Baseline and constraints
 
-The current project is an instruction-based Skill with a `gh`-first workflow, evidence rubric, extraction playbook, optional subagent guidance, and ChatGPT metadata. It does not provide its own GitHub index, hosted MCP server, persistent database, or guaranteed code-execution runtime.
+Before this revision, the project was an instruction-based Skill with a `gh`-first workflow, evidence rubric, extraction playbook, optional subagent guidance, and ChatGPT metadata. It does not provide its own GitHub index, hosted MCP server, persistent database, or guaranteed code-execution runtime.
 
 This roadmap targets usability in normal chat sessions rather than extending the project into an autonomous coding agent. The existing engineering-only scope remains unchanged.
 
@@ -37,6 +56,8 @@ Design principles:
 
 **Proposed implementation:** Add `references/tool-selection.md` with a short capability and fallback decision table. Replace mandatory CLI-first language in `SKILL.md` and the relevant supporting references.
 
+**Finding (2026-10-09):** In a sandboxed agent session with `gh` installed, all five former `gh` templates failed with HTTP 403 because the proxy blocked GraphQL and cross-repository search. CLI-first fails outside chat as well, not only in chat.
+
 **Acceptance:** The Skill researches a public GitHub issue from ChatGPT Chat or Claude Chat when the session has a usable connector or browser but no shell. It reports limitations when neither is available.
 
 ## 3. P0: Strengthen evidence verification
@@ -55,7 +76,7 @@ Design principles:
 
 **Proposed implementation:** Amend `references/research-rubric.md`, `references/extraction-playbook.md`, and the minimal verification instructions in `SKILL.md`.
 
-**Acceptance:** A newer incompatible fix is rejected even if the repository is popular. An unreleased merge is never described as available in a published package.
+**Acceptance:** In every with-Skill run of the `incompatible-popular-candidate` and `merged-but-unreleased` evaluations, a newer incompatible fix is rejected even if the repository is popular, and an unreleased merge is not described as available in a published package.
 
 ## 4. P0: Protect against unsafe retrieved instructions and query leakage
 
@@ -72,7 +93,7 @@ Design principles:
 
 **Proposed implementation:** Add one focused trust-boundary section in `SKILL.md`. Avoid a separate security framework or dependency.
 
-**Acceptance:** A malicious README cannot redirect the research workflow. A secret embedded in an error message never appears in a generated external search query.
+**Acceptance:** Zero failures across all with-Skill runs of the `adversarial-readme` and `sensitive-diagnostic` evaluations. Model behavior varies between runs, so this is measured over at least 3 runs per platform, not assumed.
 
 ## 5. P1: Improve automatic Skill triggering
 
@@ -103,7 +124,7 @@ Design principles:
 
 ## 7. P1: Build a small cross-platform regression set
 
-Do not introduce a test framework before it is needed. Start with an English-language `tests/cases.md` containing reproducible prompts, expected tool behavior, and pass/fail criteria.
+Do not introduce a test framework before it is needed. The cases live in `evals/evals.json` (the layout used by Anthropic's skill-creator), with fixtures in `evals/files/` and the run protocol and results log in `evals/README.md`.
 
 | Case | Input condition | Required result |
 | --- | --- | --- |
@@ -125,9 +146,10 @@ After the P0 and P1 behavior is verified:
 - Consolidate repeated evidence and subagent rules across `SKILL.md`, README, and references.
 - Keep one shared Skill core instead of duplicating the workflow for ChatGPT and Claude.
 - Keep small platform notes only for confirmed, material differences.
-- Add CI for structural validation and for detecting CJK text in tracked documentation, if recurring edits justify it.
-- Document packaging and import requirements for each platform using current official guidance. Do not promise identical mobile capabilities.
-- Correct unsafe installation or migration examples so customized local Skill directories are backed up rather than deleted.
+- Add CI for structural validation and for detecting CJK text in tracked documentation. (Done.)
+- Document packaging and import requirements for each platform using current official guidance. Do not promise identical mobile capabilities. (Documented in README.md.)
+- Package the Skill as a plugin (root `plugin.json` plus `skills/pavedpath-code/`) so that ChatGPT web and mobile can load it. Decide whether the plugin lives in this repository or a separate one, so the Skill's own layout stays unchanged.
+- Correct unsafe installation or migration examples so customized local Skill directories are backed up rather than deleted. (Done.)
 
 ## 9. Explicit non-goals
 

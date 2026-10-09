@@ -1,20 +1,35 @@
-# Migration: PavedPath Code
+# Migration to PavedPath Code
 
-`github-solution-research` has been renamed to **PavedPath Code**.
+`github-solution-research` was renamed to **PavedPath Code**.
 
-- New skill name: `pavedpath-code`
+- Skill name: `pavedpath-code`
 - Display name: `PavedPath Code`
-- Chinese alias: `PavedPath Code (Code Edition)`
-- Previous behavior is preserved; this is a naming and positioning update.
-- New active installations should use the `pavedpath-code` Skill name. If your runtime uses `~/.codex/skills`, install to `~/.codex/skills/pavedpath-code`; other agent runtimes should use their own active skill/instruction directory.
-- Avoid keeping an old `github-solution-research/SKILL.md` under an active skill root, because an agent runtime may recursively load both names.
 
-## Update an existing local installation
+Keep only one of the two names active. Some runtimes scan Skill directories recursively and would load both.
+
+## Replace an old installation safely
+
+The commands below use Codex's user Skill directory. Replace `SKILLS` with your runtime's directory, for example `~/.claude/skills` for Claude Code. Nothing is deleted: old copies are moved to a dated backup outside the active Skill root.
 
 ```bash
-mkdir -p ~/.codex/skills
-rm -rf ~/.codex/skills/pavedpath-code
-git clone https://github.com/Jia-Ethan/pavedpath-code.git ~/.codex/skills/pavedpath-code
+SKILLS=~/.agents/skills
+BACKUP=~/skill-backups/$(date +%Y%m%d-%H%M%S)
+mkdir -p "$SKILLS" "$BACKUP"
+
+# Move any existing copies out of the active root.
+for old in github-solution-research pavedpath-code; do
+  [ -e "$SKILLS/$old" ] && mv "$SKILLS/$old" "$BACKUP/"
+done
+
+git clone https://github.com/riprayx/pavedpath-code.git "$SKILLS/pavedpath-code"
 ```
 
-If an old installation exists at `~/.codex/skills/github-solution-research`, move it outside the active skill root or remove it after confirming `pavedpath-code` is installed.
+If the backup contains local edits you want to keep, compare them with `diff -ru "$BACKUP/pavedpath-code" "$SKILLS/pavedpath-code"` and copy them over. Delete the backup only once the new installation works.
+
+## Behavior changes in the 2026-10-09 revision
+
+- The Skill no longer requires the GitHub CLI. It uses whichever research tools the session provides.
+- Answers default to a compact shape: conclusion, evidence, change, verification, uncertainty.
+- Rules that were out of scope were removed: public platform data collection, demo URLs for website templates, and a browser-scripting note.
+
+See [CHANGELOG.md](CHANGELOG.md) for details.

@@ -1,147 +1,111 @@
 # PavedPath Code
 
-**PavedPath Code** is a reusable AI agent Skill for researching software engineering problems through GitHub and open-source evidence. It identifies implementation paths that have already been tried, evaluates whether they fit the user's environment, and recommends the smallest verifiable local adaptation.
+**PavedPath Code** is an Agent Skill for software engineering problems. It helps an agent find a path someone already walked (an upstream issue, a merged and released fix, an official example, a maintained library), check that it really applies to the user's versions and environment, and turn it into the smallest verifiable local change.
 
-[![Reusable Skill](https://img.shields.io/badge/Reusable-Skill-111827?style=flat-square)](SKILL.md)
-[![GitHub CLI first](https://img.shields.io/badge/GitHub%20CLI-first-0969da?style=flat-square)](SKILL.md)
+[![Agent Skill](https://img.shields.io/badge/Agent%20Skill-SKILL.md-111827?style=flat-square)](SKILL.md)
+[![Validate Skill](https://github.com/riprayx/pavedpath-code/actions/workflows/validate.yml/badge.svg)](.github/workflows/validate.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green?style=flat-square)](LICENSE)
 
-> **Current status:** This is an instruction-based Skill, not a standalone search engine, autonomous code fixer, or MCP server. Its current research instructions prefer the GitHub CLI. A chat-first, tool-adaptive workflow for ChatGPT Chat and Claude Chat is planned in [DEVELOPMENT_PLAN.md](DEVELOPMENT_PLAN.md); the roadmap is not yet implemented.
+> **Status:** This is an instruction-only Skill. It is not a search engine, an MCP server, or an autonomous code fixer. It uses whatever research tools the host session provides. Cross-platform behavior is defined by the [evaluation set](evals/README.md), but recorded results are still pending, so treat platform support as **unverified** until results are logged.
 
-## Purpose and scope
+This repository is a fork of [Jia-Ethan/pavedpath-code](https://github.com/Jia-Ethan/pavedpath-code).
 
-PavedPath Code helps coding agents avoid reinventing solutions to problems that may already have a documented fix or implementation pattern in GitHub repositories, issues, pull requests, discussions, code examples, tests, and release notes.
+## What it does
 
-Use it for:
+| Step | Behavior |
+| --- | --- |
+| Frame | Collects the exact error, versions, platform, and recent changes, then picks an evidence mode: error, API usage, or project selection. |
+| Choose tools | Uses an authorized GitHub connector or MCP server, the `gh` CLI (with REST fallbacks), or web search, whichever the session actually has. It never requires a specific tool. |
+| Search | Uses exact, scrubbed strings. Searches closed issues and merged PRs separately, and knows the search index's blind spots. |
+| Reject, then rank | Applies hard gates (version, platform, safety, license) before ranking by fit and evidence tier. Stars only break ties. |
+| Confirm fix status | Separates **Proposed**, **Merged**, **Released** (with a version), and **Verified**. It checks that a merged fix actually shipped. |
+| Answer | Default shape: conclusion, evidence, change, verification, uncertainty. Longer reports only on request. |
+| Stay safe | Treats retrieved content as data, scrubs secrets from queries, and runs nothing from READMEs or issues without approval. |
 
-- Runtime errors, build failures, failing tests, packaging problems, and deployment failures.
-- Dependency conflicts, SDK integration problems, framework behavior, and API usage.
-- Feature implementation blockers where a proven example or upstream fix may exist.
-- Researching engineering tools or open-source projects for a specific capability.
-- Comparing evidence and adapting a proven solution to the constraints of a local codebase.
+## Use it for
 
-Do not use it for general life decisions, consumer shopping, creative writing, social-media workflows, study methods, or unrelated broad research. Avoid external searches when the user's codebase already provides the answer or the user has prohibited web research. Do not inspect private repositories without explicit authorization and a bounded scope.
+- Runtime errors, stack traces, failing builds or tests, packaging and deployment failures.
+- Dependency and version conflicts, SDK and API integration problems, surprising framework behavior.
+- "Is this already reported or fixed upstream?" and "Which release contains the fix?"
+- Finding a maintained open-source library, tool, or reference implementation for a specific capability.
 
-## What the Skill provides
+Not for non-software research, shopping, creative writing, or local refactors that the codebase already answers.
 
-| Capability | Current behavior | Important limitation |
-| --- | --- | --- |
-| Problem-first investigation | Identifies the symptom, environment, version, constraints, and reproduction path | An incomplete error report may require local inspection |
-| GitHub evidence research | Searches repositories, issues, PRs, code, examples, documentation, and releases | The current Skill prefers `gh`; it does not bundle a search engine |
-| Repository evaluation | Checks fit, Stars, forks, license, activity, example quality, and adaptation cost | Popularity is not proof that a solution works |
-| Evidence ranking | Prioritizes confirmed fixes, released changes, official examples, and reproducible code | A merged PR is not automatically a released fix |
-| Conditional subagents | Delegates independent, read-only research only when that adds value | No agent orchestration infrastructure is bundled |
-| Local adaptation | Preserves proven patterns and limits changes to necessary local differences | No guarantee of autonomous code changes |
-| Verification | Requires a suitable test, build, reproduction, request, or inspection | The agent must actually run a check before claiming success |
+## Repository layout
+
+```text
+SKILL.md                     Core instructions (loaded when the Skill triggers)
+references/
+  tool-selection.md          Capability map, platform notes, error handling, rate limits
+  search-patterns.md         Query recipes, release checks, fork mining, index blind spots
+  research-rubric.md         Hard gates, evidence tiers, fix status, repository evaluation
+  extraction-playbook.md     Reading order, what to extract, detailed report template
+  subagents.md               When and how to delegate research
+agents/openai.yaml           Display metadata for ChatGPT and Codex
+evals/                       Behavior and trigger evaluations, fixtures, results log
+tools/check_skill.py         Validator and zip packager (Python standard library only)
+docs/REFERENCES.md           Sources and prior art this fork is based on
+```
 
 ## Installation
 
-### Ask an agent to install the Skill
+The installable Skill is `SKILL.md`, `references/`, `agents/`, and `LICENSE`. The other files are for maintainers. Skill locations change between releases, so check the vendor documentation linked in [docs/REFERENCES.md](docs/REFERENCES.md) if a path below does not work.
 
-Copy this prompt into a coding agent with access to the required files and tools:
-
-> Install or integrate the reusable Skill from https://github.com/Jia-Ethan/pavedpath-code. Read README.md, SKILL.md, MIGRATION.md, and references/ first. Its scope is software engineering problems, not general-purpose research. Identify the active Skills or instructions directory for the current runtime. Before writing files, show the exact destination and backup plan and wait for my approval. Do not leave both pavedpath-code and the retired github-solution-research active under different directories. Preserve existing customizations, do not store credentials, and verify that the Skill is discoverable after installation.
-
-### Install manually in a terminal-based agent
-
-Use the active Skill directory appropriate for your agent. The following location is an example for Codex:
+### Claude Code
 
 ```bash
-mkdir -p ~/.codex/skills
-git clone https://github.com/Jia-Ethan/pavedpath-code.git ~/.codex/skills/pavedpath-code
+git clone https://github.com/riprayx/pavedpath-code.git ~/.claude/skills/pavedpath-code
 ```
 
-To update an existing Git checkout that has no conflicting local changes:
+Use `.claude/skills/pavedpath-code` inside a project instead to share it with that project.
+
+### Codex CLI, the IDE extension, and the ChatGPT desktop app
 
 ```bash
-git -C ~/.codex/skills/pavedpath-code pull --ff-only
+git clone https://github.com/riprayx/pavedpath-code.git ~/.agents/skills/pavedpath-code
 ```
 
-The Skill instructions currently prefer GitHub CLI (`gh`) when available. Authentication and installation requirements depend on the selected GitHub access method. Never paste credentials into prompts or documentation.
+Current OpenAI documentation lists `~/.agents/skills` for user Skills and `.agents/skills` in a repository. Older Codex versions used `~/.codex/skills`.
 
-### ChatGPT Chat and Claude Chat
-
-The project includes an agent-readable `SKILL.md` and ChatGPT metadata in `agents/openai.yaml`. Import the Skill using the feature supported by your chat product and plan, and authorize any needed GitHub tools separately. Support for uploads, connectors, remote MCP, browsing, and file execution depends on the platform and session.
-
-**Important:** Importing a Skill does not grant GitHub access or make a terminal available. The current `gh`-first design is being reconsidered specifically for chat-based use. See the [development plan](DEVELOPMENT_PLAN.md) for proposed tool discovery, fallbacks, and platform tests.
-
-## Research workflow
-
-1. Define the concrete engineering problem and identify constraints.
-2. Choose evidence sources: issues and PRs for regressions; code and examples for API usage; repositories for reusable capabilities.
-3. Decide whether independent subagents can improve research coverage.
-4. Search using precise error messages, API names, versions, configuration keys, and relevant environment details.
-5. Compare problem fit, evidence strength, local applicability, actionability, and repository maturity.
-6. Read strong matches in detail, including fixes, tests, release status, and warnings.
-7. Extract what should be reused, what must change locally, and what should be avoided.
-8. Verify with tests, builds, real requests, logs, or appropriate manual checks.
-
-See [the evidence rubric](references/research-rubric.md) and [the extraction playbook](references/extraction-playbook.md) for details.
-
-## GitHub CLI examples
-
-Search repository candidates:
+### claude.ai
 
 ```bash
-gh search repos "browser automation agent" --archived=false --sort stars --order desc --limit 10 \
-  --json fullName,url,description,stargazersCount,forksCount,language,license,pushedAt,isArchived,openIssuesCount
+python3 tools/check_skill.py --package   # creates dist/pavedpath-code.zip
 ```
 
-Find matching issues:
+Upload the zip in the Skills section of claude.ai settings. Custom Skills require code execution to be enabled. For research, also enable web search or a GitHub connector: the code sandbox may have limited or no network access.
+
+### ChatGPT on the web and mobile
+
+Standalone Skills are not loaded there. ChatGPT web and mobile load Skills only when they are bundled in a plugin. Plugin packaging is on the [roadmap](DEVELOPMENT_PLAN.md) and is not provided yet.
+
+### Any other agent
+
+Ask the agent to install the Skill:
+
+> Install the Agent Skill from https://github.com/riprayx/pavedpath-code into the active Skills directory for this runtime. Show me the destination path and a backup plan for any existing `pavedpath-code` or `github-solution-research` directory, and wait for my approval before writing. Do not store credentials. Afterwards, confirm that the Skill is discoverable.
+
+### Updating
 
 ```bash
-gh search issues '"Cannot find module" "Node.js 22"' --repo owner/repo \
-  --sort updated --order desc --limit 10 \
-  --json title,url,state,updatedAt,commentsCount,repository,body
+git -C <skill-directory> pull --ff-only
 ```
 
-Inspect merged pull requests:
+Coming from `github-solution-research`? See [MIGRATION.md](MIGRATION.md).
+
+## Development
 
 ```bash
-gh search prs '"ERR_PACKAGE_PATH_NOT_EXPORTED" vite plugin' --repo owner/repo \
-  --merged --sort updated --order desc --limit 10 \
-  --json title,url,state,updatedAt,commentsCount,repository,body
+python3 tools/check_skill.py             # frontmatter limits, body length, links, metadata keys, evals, English-only
+python3 tools/check_skill.py --package   # the same checks, then build dist/pavedpath-code.zip
 ```
 
-Read repository metadata:
+CI runs the same command on every push and pull request.
 
-```bash
-gh repo view owner/repo \
-  --json nameWithOwner,url,description,stargazerCount,forkCount,licenseInfo,primaryLanguage,pushedAt,repositoryTopics,homepageUrl
-```
+Change behavior by evaluation, not by intuition: add or update a case in [evals/](evals/README.md), run it with and without the Skill, then edit the instructions. Keep `SKILL.md` short, and put detail in `references/`, each file linked directly from `SKILL.md`.
 
-## Output expectations
+The [development plan](DEVELOPMENT_PLAN.md) tracks what is implemented and what is still open. Repository content is maintained in English.
 
-When open-source research materially informs a recommendation, provide:
+## Credits and license
 
-- A short problem profile and relevant environment constraints.
-- Direct links to issues, PRs, code, tests, releases, or official documentation.
-- A clear reason each evidence item applies, including important version conditions.
-- A minimal recommendation: reuse, adapt, avoid, and verify.
-- Relevant risks, rejected alternatives, and uncertainty when evidence is weak.
-
-Only include repository comparison tables when choosing among actual projects. Only include a subagent trace when subagents were used. Never substitute a list of links or Star counts for evidence.
-
-## Safety and limits
-
-- Public GitHub content is the default research scope. Private content requires authorization.
-- Never put tokens, cookies, credentials, private source, internal context, sensitive logs, or production data into search queries, outputs, saved files, or subagent prompts.
-- Cross-check security, payment, authentication, infrastructure, and production operations against current official documentation.
-- Prefer public APIs, configuration patterns, examples, and tests over copying large sections of third-party source code. Respect licenses.
-- Treat unverified advice as a candidate solution, not a demonstrated fix.
-
-The next development phase proposes explicit safeguards against prompt injection in repository content and secret-bearing search queries.
-
-## Development and maintenance
-
-The [development plan](DEVELOPMENT_PLAN.md) describes a chat-first roadmap for ChatGPT Chat and Claude Chat, including tool-independent research, release-state checks, security hardening, compact answers, regression tests, and English-only project documentation. Planned items must not be represented as shipped features.
-
-The legacy Skill name was `github-solution-research`. See [MIGRATION.md](MIGRATION.md) before changing an existing installation, and preserve customized files before any replacement.
-
-Project documents and Skill metadata are maintained in English.
-
-## Community and license
-
-Community feedback: [LINUX DO](https://linux.do/).
-
-This project is licensed under the [MIT License](LICENSE).
+Originally created by Jia-Ethan ([upstream repository](https://github.com/Jia-Ethan/pavedpath-code); community: [LINUX DO](https://linux.do/)). Licensed under the [MIT License](LICENSE).

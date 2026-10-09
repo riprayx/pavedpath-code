@@ -1,5 +1,4 @@
 interface:
   display_name: "PavedPath Code"
-  alias: "PavedPath Code (Code Edition)"
-  short_description: "Find proven engineering solutions in GitHub evidence and adapt them into minimal, verifiable local changes."
-  default_prompt: "Use $pavedpath-code to frame my software engineering problem, search GitHub and open-source evidence with gh first, conditionally use subagents only when they improve research coverage, list relevant project basics including Stars when a repository-level solution applies, record subagent trace if used, then recommend the smallest local adaptation and verification path."
+  short_description: "Find proven fixes and implementations in GitHub and open-source evidence, then apply the smallest verified change."
+  default_prompt: "Use $pavedpath-code to find a proven fix or implementation for this engineering problem, check that it applies to my versions, and give me the smallest change plus how to verify it."

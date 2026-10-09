@@ -5,7 +5,7 @@ description: PavedPath Code is the code-focused edition of PavedPath. It helps a
 
 # PavedPath Code
 
-PavedPath Code（代码版）helps agents avoid reinventing solutions for software engineering problems. It searches GitHub and open-source evidence for proven implementation paths, then adapts the strongest pattern to the local codebase with minimal, verifiable changes.
+PavedPath Code (code edition)helps agents avoid reinventing solutions for software engineering problems. It searches GitHub and open-source evidence for proven implementation paths, then adapts the strongest pattern to the local codebase with minimal, verifiable changes.
 
 Use GitHub as a primary evidence source, not as a link dump. The goal is to define the local code problem, find paths already walked in public repositories, issues, pull requests, discussions, examples, release notes, and source code, evaluate the strength of that evidence, then translate the strongest pattern into a small local fix, implementation path, or verification plan.
 

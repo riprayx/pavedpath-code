@@ -28,14 +28,14 @@ Help a user research a concrete software engineering problem with whatever GitHu
 | Search craft | Query recipes, release checks, fork mining, index blind spots | `references/search-patterns.md` |
 | Regression set | 8 behavior cases with safety fixtures, run protocol, results log | `evals/` |
 | Validation and CI | Frontmatter, length, links, metadata keys, evals, YAML safety, English-only | `tools/check_skill.py`, `.github/workflows/validate.yml` |
-| Packaging | claude.ai zip and portable Agent Plugin zip, built locally and in CI | `tools/check_skill.py --package` |
+| Packaging | claude.ai Skill zip, Claude plugin zip (validated with `claude plugin validate --strict`), and portable Agent Plugin zip, built locally and in CI | `tools/check_skill.py --package` |
 | Documentation | Per-platform installation, safe migration, sources | `README.md`, `MIGRATION.md`, `docs/REFERENCES.md` |
 
 ## Remaining work
 
 Work through these in order. Change `SKILL.md` only in response to a recorded failure.
 
-1. **Acceptance in Claude chat (claude.ai).** Upload `dist/pavedpath-code.zip`, then run every case in `evals/evals.json` 3 times with the Skill on and 3 times with it off, and run the trigger set once. Record each run in `evals/README.md`.
+1. **Acceptance in Claude chat (claude.ai).** Upload `dist/pavedpath-code.zip` (Skill) or `dist/pavedpath-code-claude-plugin.zip` (plugin), then run every case in `evals/evals.json` 3 times with the Skill on and 3 times with it off, and run the trigger set once. Record each run in `evals/README.md`.
    *Done when* all with-Skill runs of the two safety cases pass, every other case passes at least 2 of 3 runs, and trigger accuracy is at least 9 of 10 in both groups.
 2. **Fix observed failures.** For each failing assertion, decide whether the cause is triggering (edit `description`), instructions (edit `SKILL.md` or the relevant reference), or the case itself (edit the eval). Re-run only the affected cases.
 3. **Acceptance in Claude Code and Codex CLI.** Repeat step 1 on terminal surfaces, where `gh` may be present but blocked.

@@ -10,8 +10,9 @@ Usage:
     python3 tools/check_skill.py --package   # validate, then build the packages in dist/
 
 Packages:
-    dist/pavedpath-code.zip          claude.ai upload (Customize > Skills)
-    dist/pavedpath-code-plugin.zip   portable Agent Plugin (ChatGPT and Codex plugins)
+    dist/pavedpath-code.zip                 claude.ai "Upload a skill" (Customize > Skills)
+    dist/pavedpath-code-claude-plugin.zip   claude.ai "Upload a plugin" and Claude Code plugins
+    dist/pavedpath-code-plugin.zip          portable Agent Plugin (ChatGPT and Codex plugins)
 """
 
 import argparse
@@ -192,6 +193,10 @@ def short_description(fallback):
     return match.group(1) if match else fallback
 
 
+def manifest_keywords():
+    return ["debugging", "github", "open-source", "research", "software-engineering"]
+
+
 def package(name, description, version):
     dist = ROOT / "dist"
     dist.mkdir(exist_ok=True)
@@ -211,14 +216,32 @@ def package(name, description, version):
         "homepage": REPOSITORY,
         "repository": REPOSITORY,
         "license": "MIT",
-        "keywords": ["debugging", "github", "open-source", "research", "software-engineering"],
+        "keywords": manifest_keywords(),
     }
+    # Claude plugin layout: .claude-plugin/plugin.json at the zip root, the Skill under skills/<name>/.
+    claude_manifest = {
+        "name": name,
+        "displayName": "PavedPath Code",
+        "version": version,
+        "description": short_description(description),
+        "author": {"name": "PavedPath Code contributors", "url": REPOSITORY},
+        "homepage": REPOSITORY,
+        "repository": REPOSITORY,
+        "license": "MIT",
+        "keywords": manifest_keywords(),
+    }
+    claude_zip = dist / f"{name}-claude-plugin.zip"
+    with zipfile.ZipFile(claude_zip, "w", zipfile.ZIP_DEFLATED) as archive:
+        archive.writestr(".claude-plugin/plugin.json", json.dumps(claude_manifest, indent=2) + "\n")
+        archive.write(ROOT / "LICENSE", "LICENSE")
+        add_tree(archive, SKILL_PATHS, f"skills/{name}/")
+
     plugin_zip = dist / f"{name}-plugin.zip"
     with zipfile.ZipFile(plugin_zip, "w", zipfile.ZIP_DEFLATED) as archive:
         archive.writestr(f"{name}/plugin.json", json.dumps(manifest, indent=2) + "\n")
         add_tree(archive, SKILL_PATHS + OPENAI_PATHS, f"{name}/skills/{name}/")
 
-    for target in (skill_zip, plugin_zip):
+    for target in (skill_zip, claude_zip, plugin_zip):
         print(f"packaged {target.relative_to(ROOT)}")
 
 

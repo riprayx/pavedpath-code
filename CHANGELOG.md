@@ -24,7 +24,7 @@ Chat-first revision. Sources and reasoning: `docs/REFERENCES.md`.
 - `evals/`: 8 behavior cases (including prompt-injection and secret-leak fixtures), 20 trigger queries, and a run protocol with a results log.
 - `tools/check_skill.py`: validates frontmatter limits, body length, links, references, `openai.yaml` keys, evals, and the English-only policy. With `--package`, it builds the claude.ai zip.
 - `.github/workflows/validate.yml`: runs the validator in CI and publishes the packages as a run artifact.
-- Packaging: `--package` builds `dist/pavedpath-code.zip` for claude.ai and `dist/pavedpath-code-plugin.zip`, a portable Agent Plugin for ChatGPT and Codex plugins. The manifest is generated, and its version comes from this changelog.
+- Packaging: `--package` builds `dist/pavedpath-code.zip` (claude.ai "Upload a skill"), `dist/pavedpath-code-claude-plugin.zip` (claude.ai "Upload a plugin" and Claude Code; passes `claude plugin validate --strict`), and `dist/pavedpath-code-plugin.zip`, a portable Agent Plugin for ChatGPT and Codex plugins. The manifest is generated, and its version comes from this changelog.
 - The validator also rejects `description` values that would break unquoted YAML.
 - `CONTRIBUTING.md`: evaluation-first workflow, layout and writing rules, versioning.
 - README: a step-by-step guide for using the Skill in Claude chat, with troubleshooting.

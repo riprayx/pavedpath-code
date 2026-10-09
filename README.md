@@ -51,9 +51,14 @@ CONTRIBUTING.md              Evaluation-first workflow and writing rules
 
 ## Use it in Claude chat (claude.ai)
 
-1. **Get the package.** Download the `pavedpath-code-packages` artifact from the latest successful CI run and unzip it once to get `pavedpath-code.zip`, or build it yourself with `python3 tools/check_skill.py --package`, which writes `dist/pavedpath-code.zip`. The zip contains one folder, `pavedpath-code/`, with `SKILL.md`, `references/`, and `LICENSE`.
+1. **Get the package.** Download the `pavedpath-code-packages` artifact from the latest successful CI run and unzip it once, or build the packages yourself with `python3 tools/check_skill.py --package` (they are written to `dist/`). There are two ways to install, and each needs its own zip:
+
+   | claude.ai menu | Zip to choose | Layout |
+   | --- | --- | --- |
+   | **Upload a skill** | `pavedpath-code.zip` | One `pavedpath-code/` folder with `SKILL.md`, `references/`, and `LICENSE` |
+   | **Upload a plugin** | `pavedpath-code-claude-plugin.zip` | `.claude-plugin/plugin.json` at the root, with the Skill under `skills/pavedpath-code/` |
 2. **Turn on code execution.** Custom Skills require it. On Free, Pro, and Max plans it is under **Settings > Capabilities** ("Code execution and file creation"). On Team and Enterprise plans, an owner enables it, together with Skills, in the organization settings.
-3. **Upload the Skill.** Go to **Customize > Skills**, select **+**, then **Create skill > Upload a skill**, and choose the zip. Make sure the Skill is toggled on.
+3. **Upload it.** Either go to **Customize > Skills**, select **+**, then **Create skill > Upload a skill**, and choose `pavedpath-code.zip`. Or use **Customize > Upload a plugin** with `pavedpath-code-claude-plugin.zip`. Make sure the Skill or plugin is toggled on. Install only one of the two, so the Skill does not load twice.
 4. **Give it research tools.** Turn on **web search** in the chat. Optionally connect the **GitHub** integration so that Claude can read issues, pull requests, and code directly. Without either, the Skill says that it could not research and answers from local context only.
 5. **Try it.** Start a new chat and paste a real error, for example:
    > my CRA app (react-scripts 4) won't start on node 18: `error:0308010C:digital envelope routines::unsupported`. what's the real fix?
@@ -67,6 +72,7 @@ Skills you enable on claude.ai also sync to Claude Code when it is signed in wit
 | Symptom | Fix |
 | --- | --- |
 | No Skills section, or Skills greyed out | Code execution is off. See step 2. |
+| "Zip must contain a .claude-plugin/plugin.json file" | You used **Upload a plugin** with the Skill zip. Use `pavedpath-code-claude-plugin.zip` there, or switch to **Upload a skill**. |
 | Upload rejected | The zip must contain the `pavedpath-code/` folder at its root, and the folder name must match `name` in `SKILL.md`. Rebuild it with the packager rather than zipping by hand. If the error mentions the description, shorten `description` in `SKILL.md` to 200 characters or fewer, rebuild, and report it in an issue. The Help Center states a 200-character limit, while the API documentation and the Agent Skills specification allow 1,024. |
 | The Skill is not used | Check that the toggle is on, and that the message is about a concrete engineering problem. Name the Skill explicitly to force it. |
 | "Could not research" | Web search is off and no GitHub connector is connected. See step 4. |

@@ -12,5 +12,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Check structure, links, metadata, evals, and English-only policy
+      - name: Check structure, links, metadata, evals, and English-only policy, then package
         run: python3 tools/check_skill.py --package
+      - name: Upload packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: pavedpath-code-packages
+          path: dist/*.zip
+          if-no-files-found: error

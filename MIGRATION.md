@@ -26,10 +26,6 @@ git clone https://github.com/riprayx/pavedpath-code.git "$SKILLS/pavedpath-code"
 
 If the backup contains local edits you want to keep, compare them with `diff -ru "$BACKUP/pavedpath-code" "$SKILLS/pavedpath-code"` and copy them over. Delete the backup only once the new installation works.
 
-## Behavior changes in the 2026-10-09 revision
+## Behavior changes in 1.0.0
 
-- The Skill no longer requires the GitHub CLI. It uses whichever research tools the session provides.
-- Answers default to a compact shape: conclusion, evidence, change, verification, uncertainty.
-- Rules that were out of scope were removed: public platform data collection, demo URLs for website templates, and a browser-scripting note.
-
-See [CHANGELOG.md](CHANGELOG.md) for details.
+The Skill no longer requires the GitHub CLI, answers default to a compact shape, and several out-of-scope rules were removed. See the 1.0.0 entry in [CHANGELOG.md](CHANGELOG.md).

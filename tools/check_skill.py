@@ -7,7 +7,11 @@ and the repository's English-only policy.
 
 Usage:
     python3 tools/check_skill.py             # validate
-    python3 tools/check_skill.py --package   # validate, then build dist/pavedpath-code.zip
+    python3 tools/check_skill.py --package   # validate, then build the packages in dist/
+
+Packages:
+    dist/pavedpath-code.zip          claude.ai upload (Customize > Skills)
+    dist/pavedpath-code-plugin.zip   portable Agent Plugin (ChatGPT and Codex plugins)
 """
 
 import argparse
@@ -33,7 +37,10 @@ OPENAI_KEYS = {
     "dependencies": {"tools"},
 }
 # Files that make up the installable Skill. Everything else is for maintainers.
-PACKAGE_PATHS = ("SKILL.md", "LICENSE", "references", "agents")
+SKILL_PATHS = ("SKILL.md", "LICENSE", "references")
+OPENAI_PATHS = ("agents",)
+VERSION_RE = re.compile(r"^## (\d+\.\d+\.\d+)\b", re.MULTILINE)
+REPOSITORY = "https://github.com/riprayx/pavedpath-code"
 
 errors = []
 
@@ -79,6 +86,8 @@ def check_frontmatter(fields):
         fail("frontmatter: description must not contain XML tags or angle brackets")
     if description[:1] in "\"'":
         fail("frontmatter: write the description unquoted on one line")
+    if description and (": " in description or " #" in description or description[0] in "&*!|>%@`[]{},?-"):
+        fail("frontmatter: description contains characters that break an unquoted YAML value (': ', ' #', or a leading indicator)")
 
 
 def check_links(path):
@@ -161,17 +170,56 @@ def check_english_only():
                 fail(f"{path.relative_to(ROOT)}:{number}: CJK characters found (English-only policy)")
 
 
-def package(name):
+def release_version():
+    match = VERSION_RE.search((ROOT / "CHANGELOG.md").read_text(encoding="utf-8"))
+    if not match:
+        fail("CHANGELOG.md needs a '## X.Y.Z' heading for the current release")
+        return None
+    return match.group(1)
+
+
+def add_tree(archive, entries, prefix):
+    for entry in entries:
+        source = ROOT / entry
+        paths = [source] if source.is_file() else sorted(p for p in source.rglob("*") if p.is_file())
+        for path in paths:
+            archive.write(path, f"{prefix}{path.relative_to(ROOT).as_posix()}")
+
+
+def short_description(fallback):
+    path = ROOT / "agents" / "openai.yaml"
+    match = re.search(r'^\s+short_description:\s*"([^"]+)"', path.read_text(encoding="utf-8"), re.MULTILINE) if path.exists() else None
+    return match.group(1) if match else fallback
+
+
+def package(name, description, version):
     dist = ROOT / "dist"
     dist.mkdir(exist_ok=True)
-    target = dist / f"{name}.zip"
-    with zipfile.ZipFile(target, "w", zipfile.ZIP_DEFLATED) as archive:
-        for entry in PACKAGE_PATHS:
-            source = ROOT / entry
-            paths = [source] if source.is_file() else sorted(p for p in source.rglob("*") if p.is_file())
-            for path in paths:
-                archive.write(path, f"{name}/{path.relative_to(ROOT).as_posix()}")
-    print(f"packaged {target.relative_to(ROOT)}")
+
+    # claude.ai expects one folder named after the Skill at the zip root.
+    skill_zip = dist / f"{name}.zip"
+    with zipfile.ZipFile(skill_zip, "w", zipfile.ZIP_DEFLATED) as archive:
+        add_tree(archive, SKILL_PATHS, f"{name}/")
+
+    # Portable Agent Plugins layout: plugin.json at the root, the Skill under skills/<name>/.
+    manifest = {
+        "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+        "name": name,
+        "version": version,
+        "description": short_description(description),
+        "author": {"name": "PavedPath Code contributors", "url": REPOSITORY},
+        "homepage": REPOSITORY,
+        "repository": REPOSITORY,
+        "license": "MIT",
+        "keywords": ["debugging", "github", "open-source", "research", "software-engineering"],
+    }
+    plugin_zip = dist / f"{name}-plugin.zip"
+    with zipfile.ZipFile(plugin_zip, "w", zipfile.ZIP_DEFLATED) as archive:
+        archive.writestr(f"{name}/plugin.json", json.dumps(manifest, indent=2) + "\n")
+        add_tree(archive, SKILL_PATHS + OPENAI_PATHS, f"{name}/skills/{name}/")
+
+    for target in (skill_zip, plugin_zip):
+        print(f"packaged {target.relative_to(ROOT)}")
 
 
 def main():
@@ -190,14 +238,15 @@ def main():
     check_openai_yaml()
     check_evals()
     check_english_only()
+    version = release_version()
 
     if errors:
         for message in dict.fromkeys(errors):
             print(f"error: {message}")
         return 1
-    print(f"ok: name={fields['name']} description={len(fields['description'])} chars body={body_lines} lines")
+    print(f"ok: name={fields['name']} version={version} description={len(fields['description'])} chars body={body_lines} lines")
     if args.package:
-        package(fields["name"])
+        package(fields["name"], fields["description"], version)
     return 0
 
 

@@ -1,6 +1,6 @@
 # Changelog
 
-## 2026-10-09
+## 1.0.0 - 2026-10-09
 
 Chat-first revision. Sources and reasoning: `docs/REFERENCES.md`.
 
@@ -23,14 +23,23 @@ Chat-first revision. Sources and reasoning: `docs/REFERENCES.md`.
 - A safety section: retrieved content is data, queries are scrubbed, and no third-party commands run without approval. Also a red-flags list.
 - `evals/`: 8 behavior cases (including prompt-injection and secret-leak fixtures), 20 trigger queries, and a run protocol with a results log.
 - `tools/check_skill.py`: validates frontmatter limits, body length, links, references, `openai.yaml` keys, evals, and the English-only policy. With `--package`, it builds the claude.ai zip.
-- `.github/workflows/validate.yml`: runs the validator in CI.
+- `.github/workflows/validate.yml`: runs the validator in CI and publishes the packages as a run artifact.
+- Packaging: `--package` builds `dist/pavedpath-code.zip` for claude.ai and `dist/pavedpath-code-plugin.zip`, a portable Agent Plugin for ChatGPT and Codex plugins. The manifest is generated, and its version comes from this changelog.
+- The validator also rejects `description` values that would break unquoted YAML.
+- `CONTRIBUTING.md`: evaluation-first workflow, layout and writing rules, versioning.
+- README: a step-by-step guide for using the Skill in Claude chat, with troubleshooting.
 - `docs/REFERENCES.md`: research sources and prior art.
+
+### Cleaned up
+
+- `DEVELOPMENT_PLAN.md` was reduced to status, remaining work (acceptance runs per platform), a release checklist, non-goals, and decisions. The superseded gap analysis remains in git history.
+- `.gitignore` was trimmed to the files this repository produces.
 
 ### Removed
 
 - Out-of-scope rules: public platform data collection ("hot lists"), mandatory demo URLs for website templates, and a `page.evaluate` browser-scripting note.
 
-## 2026-06-30
+## Before 1.0.0 - 2026-06-30
 
 - Reframed README language from Codex-specific wording to a reusable, agent-agnostic Skill.
 - Added a copy-to-agent installation prompt for Codex, Claude Code, Cursor Agent, ChatGPT Agent, or other agent runtimes.
